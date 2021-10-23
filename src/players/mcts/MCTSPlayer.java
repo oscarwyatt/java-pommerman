@@ -1,6 +1,7 @@
 package players.mcts;
 
 import core.GameState;
+import players.group1b.ActionStatistic;
 import players.optimisers.ParameterizedPlayer;
 import players.Player;
 import utils.ElapsedCpuTimer;
@@ -79,6 +80,10 @@ public class MCTSPlayer extends ParameterizedPlayer {
         int action = m_root.mostVisitedAction();
 
         // TODO update message memory
+
+        // Save stats on what an MCTS player does
+        ActionStatistic actionStatistic = new ActionStatistic(gs);
+        actionStatistic.update(actions[action]);
 
         //... and return it.
         return actions[action];
