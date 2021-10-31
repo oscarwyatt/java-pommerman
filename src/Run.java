@@ -107,7 +107,7 @@ public class Run {
                     case 4:
                         RHEAParams rheaParams = new RHEAParams();
                         rheaParams.budget_type = Constants.ITERATION_BUDGET;
-                        rheaParams.iteration_budget = 200;
+                        rheaParams.iteration_budget = 100;
                         rheaParams.individual_length = 12;
                         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
                         rheaParams.mutation_rate = 0.5;
@@ -118,7 +118,7 @@ public class Run {
                     case 5:
                         MCTSParams mctsParams = new MCTSParams();
                         mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
-                        mctsParams.num_iterations = 200;
+                        mctsParams.num_iterations = 100;
                         mctsParams.rollout_depth = 12;
 
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
