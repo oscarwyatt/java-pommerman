@@ -2,8 +2,6 @@ package players.group1b;
 
 import core.GameState;
 import utils.Types;
-import utils.Vector2d;
-
 import java.util.*;
 import java.io.*;
 import java.io.FileWriter;
@@ -13,43 +11,56 @@ public class ActionStatistic {
 
     private GameState gs;
 
+
     public ActionStatistic(GameState gs)
     {
-        this.gs = gs;
+        this.gs = gs.copy();
     }
 
     public void update(Types.ACTIONS actionTaken) {
-        Types.TILETYPE[][] playerArea = getAreaAroundPlayer();
-        String stateKey = getStateDescription(playerArea);
+        ImmediatePlayerBoard playerBoard = new ImmediatePlayerBoard(gs.getPosition(), gs);
+        String stateKey = playerBoard.getStateDescription();
         updateStatistics(stateKey, actionTaken);
     }
 
-    private Types.TILETYPE[][] getAreaAroundPlayer(){
-        ImmediatePlayerBoard playerBoard = new ImmediatePlayerBoard(gs.getPosition(), gs);
-        Types.TILETYPE[][] playerArea = playerBoard.getBoard();
-        return playerArea;
+
+    public HashMap<Types.ACTIONS, Integer> statistics(ImmediatePlayerBoard playerBoard, HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStatistics){
+        String stateDescription = playerBoard.getStateDescription();
+        HashMap<Types.ACTIONS, Integer> stateStatistics = new HashMap<>();
+        if(allStateStatistics.containsKey(stateDescription)){
+            stateStatistics = allStateStatistics.get(stateDescription);
+        }
+        return stateStatistics;
     }
 
-    private String getStateDescription(Types.TILETYPE[][] playerArea){
-        String description = "";
-        for (Types.TILETYPE tileType : Types.TILETYPE.values()) {
-            // Never include these
-            if(tileType == Types.TILETYPE.AGENT2 || tileType == Types.TILETYPE.AGENT3 || tileType == Types.TILETYPE.AGENTDUMMY){
-                continue;
-            }
-            for(int x=0; x < playerArea.length; x++){
-                for(int y=0; y < playerArea[0].length; y++){
-                    String key = String.valueOf(x) + String.valueOf(y) + tileType;
-                    description += key + (playerArea[y][x] == tileType ? "1" : "0");
-                }
+    public double totalNumberTimesActionSeen(Types.ACTIONS action, HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics){
+        double total = 0;
+        for (HashMap.Entry<String, HashMap<Types.ACTIONS, Integer>> state : parsedStatistics.entrySet()){
+            HashMap<Types.ACTIONS, Integer> stateStatistics = state.getValue();
+            if (stateStatistics.containsKey(action)){
+                total += stateStatistics.get(action);
             }
         }
-        return description;
+        return total;
     }
 
-    private void updateStatistics(String stateDescription, Types.ACTIONS actionTaken){
-        String filepath = "stats/stats.txt";
-        File file = new File(filepath);
+    public double totalNumberActions(HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics){
+        double total = 0;
+        for (HashMap.Entry<String, HashMap<Types.ACTIONS, Integer>> state : parsedStatistics.entrySet()){
+            HashMap<Types.ACTIONS, Integer> stateStatistics = state.getValue();
+            for(Integer count  : stateStatistics.values()) {
+                total += count;
+            }
+        }
+        return total;
+    }
+
+    private static String statisicsFilePath() {
+        return "stats/stats.txt";
+    }
+
+    public static HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatisticsFile() {
+        File file = new File(ActionStatistic.statisicsFilePath());
         if(!file.isFile() ) {
             try {
                 file.createNewFile();
@@ -60,12 +71,16 @@ public class ActionStatistic {
         }
         // Update the stats
         String stateStatistics = readFile(file);
-        HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStats = parseStatistics(stateStatistics);
-        allStateStats = updateStatistics(allStateStats, stateDescription, actionTaken);
-        saveFile(filepath, allStateStats);
+        return parseStatistics(stateStatistics);
     }
 
-    private String readFile(File stateFile) {
+    private void updateStatistics(String stateDescription, Types.ACTIONS actionTaken){
+        HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStats = parsedStatisticsFile();
+        allStateStats = updateStatistics(allStateStats, stateDescription, actionTaken);
+        saveFile(allStateStats);
+    }
+
+    private static String readFile(File stateFile) {
         String stateStatistics = "";
         try {
             FileInputStream inputStream = new FileInputStream(stateFile);
@@ -81,7 +96,7 @@ public class ActionStatistic {
         return stateStatistics;
     }
 
-    private HashMap<String, HashMap<Types.ACTIONS, Integer>> parseStatistics(String stateStatistics){
+    private static HashMap<String, HashMap<Types.ACTIONS, Integer>> parseStatistics(String stateStatistics){
         HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStats = new HashMap<>();
         if(stateStatistics.length() == 0){
             return allStateStats;
@@ -121,7 +136,7 @@ public class ActionStatistic {
         return allStateStatistics;
     }
 
-    private void saveFile(String filepath, HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStatistics){
+    private void saveFile(HashMap<String, HashMap<Types.ACTIONS, Integer>> allStateStatistics){
         String actionData = "";
         for (HashMap.Entry<String, HashMap<Types.ACTIONS, Integer>> state : allStateStatistics.entrySet()){
             String stateDescription = state.getKey();
@@ -133,7 +148,7 @@ public class ActionStatistic {
             actionData += "\n";
         }
         try {
-            FileWriter writer = new FileWriter(filepath);
+            FileWriter writer = new FileWriter(statisicsFilePath());
             writer.write(actionData);
             writer.close();
         }  catch (IOException e) {

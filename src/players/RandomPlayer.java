@@ -21,6 +21,7 @@ public class RandomPlayer extends Player {
 
     @Override
     public Types.ACTIONS act(GameState gs) {
+        System.out.println(gs.getPosition());
         int actionIdx = random.nextInt(gs.nActions());
         return Types.ACTIONS.all().get(actionIdx);
     }

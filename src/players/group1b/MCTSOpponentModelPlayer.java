@@ -7,6 +7,7 @@ import utils.ElapsedCpuTimer;
 import utils.Types;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
@@ -15,6 +16,8 @@ public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
      * Random generator.
      */
     private Random m_rnd;
+
+    private HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatisticsFile;
 
     /**
      * All actions available.
@@ -40,6 +43,8 @@ public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
         for (Types.ACTIONS act : actionsList) {
             actions[i++] = act;
         }
+        // This takes a few seconds to parse, so do it just once at the beginning of a game and store it in memory.
+        this.parsedStatisticsFile = ActionStatistic.parsedStatisticsFile();
     }
 
     @Override
@@ -69,7 +74,7 @@ public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
         int num_actions = actions.length;
 
         // Root of the tree
-        OpponentModelSingleTreeNode m_root = new OpponentModelSingleTreeNode(params, m_rnd, num_actions, actions);
+        OpponentModelSingleTreeNode m_root = new OpponentModelSingleTreeNode(params, m_rnd, num_actions, actions, parsedStatisticsFile);
         m_root.setRootGameState(gs);
 
         //Determine the action using MCTS...
@@ -79,7 +84,6 @@ public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
         int action = m_root.mostVisitedAction();
 
         // TODO update message memory
-
         //... and return it.
         return actions[action];
     }

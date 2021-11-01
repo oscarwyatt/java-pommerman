@@ -82,8 +82,10 @@ public class MCTSPlayer extends ParameterizedPlayer {
         // TODO update message memory
 
         // Save stats on what an MCTS player does
-        ActionStatistic actionStatistic = new ActionStatistic(gs);
-        actionStatistic.update(actions[action]);
+        // Commented out to make playing games faster - I've thought of ways to make
+        // this much faster so if we want to collect more statistics let me know and I can work on that.
+        // ActionStatistic actionStatistic = new ActionStatistic(gs);
+        // actionStatistic.update(actions[action]);
 
         //... and return it.
         return actions[action];

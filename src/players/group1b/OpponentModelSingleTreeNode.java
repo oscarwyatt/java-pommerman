@@ -1,6 +1,8 @@
 package players.group1b;
 
 import core.GameState;
+import objects.Bomb;
+import objects.GameObject;
 import players.heuristics.AdvancedHeuristic;
 import players.heuristics.CustomHeuristic;
 import players.heuristics.StateHeuristic;
@@ -10,6 +12,7 @@ import utils.Utils;
 import utils.Vector2d;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class OpponentModelSingleTreeNode
@@ -29,15 +32,17 @@ public class OpponentModelSingleTreeNode
     private int num_actions;
     private Types.ACTIONS[] actions;
 
+    private HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics;
+
     private GameState rootState;
     private StateHeuristic rootStateHeuristic;
 
-    OpponentModelSingleTreeNode(MCTSOpponentModelParams p, Random rnd, int num_actions, Types.ACTIONS[] actions) {
-        this(p, null, -1, rnd, num_actions, actions, 0, null);
+    OpponentModelSingleTreeNode(MCTSOpponentModelParams p, Random rnd, int num_actions, Types.ACTIONS[] actions, HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics) {
+        this(p, null, -1, rnd, num_actions, actions, 0, null, parsedStatistics);
     }
 
     private OpponentModelSingleTreeNode(MCTSOpponentModelParams p, OpponentModelSingleTreeNode parent, int childIdx, Random rnd, int num_actions,
-                           Types.ACTIONS[] actions, int fmCallsCount, StateHeuristic sh) {
+                           Types.ACTIONS[] actions, int fmCallsCount, StateHeuristic sh, HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics) {
         this.params = p;
         this.fmCallsCount = fmCallsCount;
         this.parent = parent;
@@ -47,6 +52,7 @@ public class OpponentModelSingleTreeNode
         children = new OpponentModelSingleTreeNode[num_actions];
         totValue = 0.0;
         this.childIdx = childIdx;
+        this.parsedStatistics = parsedStatistics;
         if(parent != null) {
             m_depth = parent.m_depth + 1;
             this.rootStateHeuristic = sh;
@@ -99,7 +105,6 @@ public class OpponentModelSingleTreeNode
                 stop = (fmCallsCount + params.rollout_depth) > params.num_fmcalls;
             }
         }
-        //System.out.println(" ITERS " + numIters);
     }
 
     private OpponentModelSingleTreeNode treePolicy(GameState state) {
@@ -137,7 +142,7 @@ public class OpponentModelSingleTreeNode
         roll(state, actions[bestAction]);
 
         OpponentModelSingleTreeNode tn = new OpponentModelSingleTreeNode(params,this,bestAction,this.m_rnd,num_actions,
-                actions, fmCallsCount, rootStateHeuristic);
+                actions, fmCallsCount, rootStateHeuristic, parsedStatistics);
         children[bestAction] = tn;
         return tn;
     }
@@ -149,19 +154,58 @@ public class OpponentModelSingleTreeNode
         Types.ACTIONS[] actionsAll = new Types.ACTIONS[4];
         int playerId = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
+        ArrayList<Enemy> enemies = getEnemies(gs);
+        int enemyIndex = 0;
         for(int i = 0; i < nPlayers; ++i)
         {
             if(playerId == i)
             {
                 actionsAll[i] = act;
             }else {
-                int actionIdx = m_rnd.nextInt(gs.nActions());
-                actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
+                actionsAll[i] = enemies.get(enemyIndex).mostLikelyAction(gs, parsedStatistics);
+                enemyIndex += 1;
+                // This is actually the only change in the whole MCTS tree search that we make
+                // We assume that each enemy takes the action that is most likely from stats taken
+                // from lots of plays of the game. It isn't perfect but it's better than random!
+                // Below is what used to happen, it'd pick an action at random
+                // int actionIdx = m_rnd.nextInt(gs.nActions());
+                // actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
 
         gs.next(actionsAll);
 
+    }
+
+
+    private ArrayList<Enemy> getEnemies(GameState gs){
+        ArrayList<Enemy> enemies = new ArrayList<>();
+        Types.TILETYPE[][] board = gs.getBoard();
+        ArrayList<Types.TILETYPE> enemyIDs = gs.getAliveEnemyIDs();
+        int boardSizeX = board.length;
+        int boardSizeY = board[0].length;
+
+        for (int x = 0; x < boardSizeX; x++) {
+            for (int y = 0; y < boardSizeY; y++) {
+
+                if(Types.TILETYPE.getAgentTypes().contains(board[y][x]) &&
+                        board[y][x].getKey() != gs.getPlayerId()){ // May be an enemy
+                    if(enemyIDs.contains(board[y][x])) { // Is enemy
+                        // Create enemy object
+                        Enemy enemy = new Enemy(new Vector2d(x, y), m_rnd);
+                        enemies.add(enemy);
+                    }
+                }
+            }
+        }
+        // If an enemy is killed then they won't be on the board (so we'd have <3 in the array)
+        // thus, add them in but set them to be dead
+        while(enemies.size() < 3){
+            Enemy enemy = new Enemy(new Vector2d(0, 0), m_rnd);
+            enemy.setIsDead();
+            enemies.add(enemy);
+        }
+        return enemies;
     }
 
     private OpponentModelSingleTreeNode uct(GameState state) {
