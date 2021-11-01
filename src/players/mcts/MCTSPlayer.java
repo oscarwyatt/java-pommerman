@@ -1,6 +1,7 @@
 package players.mcts;
 
 import core.GameState;
+import players.group1b.ActionStatistic;
 import players.optimisers.ParameterizedPlayer;
 import players.Player;
 import utils.ElapsedCpuTimer;
@@ -79,6 +80,12 @@ public class MCTSPlayer extends ParameterizedPlayer {
         int action = m_root.mostVisitedAction();
 
         // TODO update message memory
+
+        // Save stats on what an MCTS player does
+        // Commented out to make playing games faster - I've thought of ways to make
+        // this much faster so if we want to collect more statistics let me know and I can work on that.
+        // ActionStatistic actionStatistic = new ActionStatistic(gs);
+        // actionStatistic.update(actions[action]);
 
         //... and return it.
         return actions[action];

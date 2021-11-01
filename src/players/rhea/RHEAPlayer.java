@@ -1,6 +1,7 @@
 package players.rhea;
 
 import core.GameState;
+import players.group1b.ActionStatistic;
 import players.optimisers.ParameterizedPlayer;
 import players.Player;
 import players.rhea.utils.RHEAParams;
@@ -53,7 +54,15 @@ public class RHEAPlayer extends ParameterizedPlayer {
             elapsedTimer.setMaxTimeMillis(params.time_budget);
         }
         setup(gs, elapsedTimer);
-        return gInterface.translate(player.getAction(elapsedTimer, gs.nActions()));
+
+        Types.ACTIONS bestAction = gInterface.translate(player.getAction(elapsedTimer, gs.nActions()));
+
+        // Save stats on what an MCTS player does
+        ActionStatistic actionStatistic = new ActionStatistic(gs);
+        actionStatistic.update(bestAction);
+
+        // And return it
+        return bestAction;
     }
 
     @Override
