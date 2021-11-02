@@ -44,7 +44,8 @@ public class MCTSOpponentModelPlayer extends ParameterizedPlayer {
             actions[i++] = act;
         }
         // This takes a few seconds to parse, so do it just once at the beginning of a game and store it in memory.
-        this.parsedStatisticsFile = ActionStatistic.parsedStatisticsFile();
+//        this.parsedStatisticsFile = ActionStatistic.parsedStatisticsFile();
+        this.parsedStatisticsFile = new HashMap<String, HashMap<Types.ACTIONS, Integer>>();
     }
 
     @Override

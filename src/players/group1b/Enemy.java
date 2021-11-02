@@ -47,6 +47,7 @@ public class Enemy {
         if(statisticsForPosition.size() == 0){
             // We have no stats for the situation that the opponent is in, return a random move
             // (an alternative would be to return the globally most popular move);
+//            System.out.println("Chosen at random");
             int actionIdx = m_rnd.nextInt(gs.nActions());
             return Types.ACTIONS.all().get(actionIdx);
         }

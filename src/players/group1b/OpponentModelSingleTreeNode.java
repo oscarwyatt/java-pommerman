@@ -34,6 +34,8 @@ public class OpponentModelSingleTreeNode
 
     private HashMap<String, HashMap<Types.ACTIONS, Integer>> parsedStatistics;
 
+    private ArrayList<Types.ACTIONS> badActions;
+
     private GameState rootState;
     private StateHeuristic rootStateHeuristic;
 
@@ -53,6 +55,7 @@ public class OpponentModelSingleTreeNode
         totValue = 0.0;
         this.childIdx = childIdx;
         this.parsedStatistics = parsedStatistics;
+        this.badActions = new ArrayList<>();
         if(parent != null) {
             m_depth = parent.m_depth + 1;
             this.rootStateHeuristic = sh;
@@ -90,7 +93,8 @@ public class OpponentModelSingleTreeNode
             backUp(selected, delta);
 
             //Stopping condition
-            if(params.stop_type == params.STOP_TIME) {
+//            if(params.stop_type == params.STOP_TIME) {
+            if(true) {
                 numIters++;
                 acumTimeTaken += (elapsedTimerIteration.elapsedMillis()) ;
                 avgTimeTaken  = acumTimeTaken/numIters;
@@ -105,6 +109,11 @@ public class OpponentModelSingleTreeNode
                 stop = (fmCallsCount + params.rollout_depth) > params.num_fmcalls;
             }
         }
+//        fmCallsCount+=params.rollout_depth;
+////        fmCallsCount+=params.rollout_depth;
+//        System.out.println("Our agent: " + fmCallsCount);
+//        System.out.println("Our agent: " + numIters);
+
     }
 
     private OpponentModelSingleTreeNode treePolicy(GameState state) {
@@ -118,24 +127,57 @@ public class OpponentModelSingleTreeNode
 
             } else {
                 cur = cur.uct(state);
+//                System.out.println("Our agent: " + cur.m_depth);
             }
         }
 
         return cur;
     }
 
+    private ArrayList<Types.ACTIONS> actionsNotToConsider(GameState state){
+        ArrayList<Types.ACTIONS> actions = new ArrayList<Types.ACTIONS>();
+        ImmediatePlayerBoard playerBoard = new ImmediatePlayerBoard(state.getPosition(), state);
+        Types.TILETYPE[][] board = playerBoard.getBoard();
+        for (int x = 0; x < 2; x++) {
+            for (int y = 0; y < 2; y++) {
+                if(board[y][x] == Types.TILETYPE.RIGID || board[y][x] == Types.TILETYPE.FLAMES || board[y][x] == Types.TILETYPE.WOOD){
+                    if(y == 0 && x == 1){
+                        actions.add(Types.ACTIONS.ACTION_UP);
+                    }
+                    if(y == 1 && x == 2){
+                        actions.add(Types.ACTIONS.ACTION_RIGHT);
+                    }
+                    if(y == 2 && x == 2){
+                        actions.add(Types.ACTIONS.ACTION_DOWN);
+                    }
+                    if(y == 1 && x == 0){
+                        actions.add(Types.ACTIONS.ACTION_LEFT);
+                    }
+                }
+            }
+        }
+        return actions;
+    }
 
     private OpponentModelSingleTreeNode expand(GameState state) {
+        if(badActions.size() == 0){
+            badActions = actionsNotToConsider(state);
+        }
 
-        int bestAction = 0;
+        int bestAction = 1;
         double bestValue = -1;
 
         for (int i = 0; i < children.length; i++) {
             double x = m_rnd.nextDouble();
-            if (x > bestValue && children[i] == null) {
-                bestAction = i;
-                bestValue = x;
+
+            if(badActions.contains(actions[i])){
+            } else {
+                if (x > bestValue && children[i] == null ) {
+                    bestAction = i;
+                    bestValue = x;
+                }
             }
+
         }
 
         //Roll the state
@@ -154,22 +196,23 @@ public class OpponentModelSingleTreeNode
         Types.ACTIONS[] actionsAll = new Types.ACTIONS[4];
         int playerId = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
-        ArrayList<Enemy> enemies = getEnemies(gs);
-        int enemyIndex = 0;
+//        ArrayList<Enemy> enemies = getEnemies(gs);
+//        int enemyIndex = 0;
         for(int i = 0; i < nPlayers; ++i)
         {
             if(playerId == i)
             {
                 actionsAll[i] = act;
             }else {
-                actionsAll[i] = enemies.get(enemyIndex).mostLikelyAction(gs, parsedStatistics);
-                enemyIndex += 1;
+//                actionsAll[i] = enemies.get(enemyIndex).mostLikelyAction(gs, parsedStatistics);
+//                System.out.println(actionsAll[i]);
+//                enemyIndex += 1;
                 // This is actually the only change in the whole MCTS tree search that we make
                 // We assume that each enemy takes the action that is most likely from stats taken
                 // from lots of plays of the game. It isn't perfect but it's better than random!
                 // Below is what used to happen, it'd pick an action at random
-                // int actionIdx = m_rnd.nextInt(gs.nActions());
-                // actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
+                 int actionIdx = m_rnd.nextInt(gs.nActions());
+                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
 
@@ -178,55 +221,57 @@ public class OpponentModelSingleTreeNode
     }
 
 
-    private ArrayList<Enemy> getEnemies(GameState gs){
-        ArrayList<Enemy> enemies = new ArrayList<>();
-        Types.TILETYPE[][] board = gs.getBoard();
-        ArrayList<Types.TILETYPE> enemyIDs = gs.getAliveEnemyIDs();
-        int boardSizeX = board.length;
-        int boardSizeY = board[0].length;
-
-        for (int x = 0; x < boardSizeX; x++) {
-            for (int y = 0; y < boardSizeY; y++) {
-
-                if(Types.TILETYPE.getAgentTypes().contains(board[y][x]) &&
-                        board[y][x].getKey() != gs.getPlayerId()){ // May be an enemy
-                    if(enemyIDs.contains(board[y][x])) { // Is enemy
-                        // Create enemy object
-                        Enemy enemy = new Enemy(new Vector2d(x, y), m_rnd);
-                        enemies.add(enemy);
-                    }
-                }
-            }
-        }
-        // If an enemy is killed then they won't be on the board (so we'd have <3 in the array)
-        // thus, add them in but set them to be dead
-        while(enemies.size() < 3){
-            Enemy enemy = new Enemy(new Vector2d(0, 0), m_rnd);
-            enemy.setIsDead();
-            enemies.add(enemy);
-        }
-        return enemies;
-    }
+//    private ArrayList<Enemy> getEnemies(GameState gs){
+//        ArrayList<Enemy> enemies = new ArrayList<>();
+//        Types.TILETYPE[][] board = gs.getBoard();
+//        ArrayList<Types.TILETYPE> enemyIDs = gs.getAliveEnemyIDs();
+//        int boardSizeX = board.length;
+//        int boardSizeY = board[0].length;
+//
+//        for (int x = 0; x < boardSizeX; x++) {
+//            for (int y = 0; y < boardSizeY; y++) {
+//
+//                if(Types.TILETYPE.getAgentTypes().contains(board[y][x]) &&
+//                        board[y][x].getKey() != gs.getPlayerId()){ // May be an enemy
+//                    if(enemyIDs.contains(board[y][x])) { // Is enemy
+//                        // Create enemy object
+//                        Enemy enemy = new Enemy(new Vector2d(x, y), m_rnd);
+//                        enemies.add(enemy);
+//                    }
+//                }
+//            }
+//        }
+//        // If an enemy is killed then they won't be on the board (so we'd have <3 in the array)
+//        // thus, add them in but set them to be dead
+//        while(enemies.size() < 3){
+//            Enemy enemy = new Enemy(new Vector2d(0, 0), m_rnd);
+//            enemy.setIsDead();
+//            enemies.add(enemy);
+//        }
+//        return enemies;
+//    }
 
     private OpponentModelSingleTreeNode uct(GameState state) {
         OpponentModelSingleTreeNode selected = null;
         double bestValue = -Double.MAX_VALUE;
         for (OpponentModelSingleTreeNode child : this.children)
         {
-            double hvVal = child.totValue;
-            double childValue =  hvVal / (child.nVisits + params.epsilon);
+            if(child != null) {
+                double hvVal = child.totValue;
+                double childValue = hvVal / (child.nVisits + params.epsilon);
 
-            childValue = Utils.normalise(childValue, bounds[0], bounds[1]);
+                childValue = Utils.normalise(childValue, bounds[0], bounds[1]);
 
-            double uctValue = childValue +
-                    params.K * Math.sqrt(Math.log(this.nVisits + 1) / (child.nVisits + params.epsilon));
+                double uctValue = childValue +
+                        params.K * Math.sqrt(Math.log(this.nVisits + 1) / (child.nVisits + params.epsilon));
 
-            uctValue = Utils.noise(uctValue, params.epsilon, this.m_rnd.nextDouble());     //break ties randomly
+                uctValue = Utils.noise(uctValue, params.epsilon, this.m_rnd.nextDouble());     //break ties randomly
 
-            // small sampleRandom numbers: break ties in unexpanded nodes
-            if (uctValue > bestValue) {
-                selected = child;
-                bestValue = uctValue;
+                // small sampleRandom numbers: break ties in unexpanded nodes
+                if (uctValue > bestValue) {
+                    selected = child;
+                    bestValue = uctValue;
+                }
             }
         }
         if (selected == null)
@@ -378,12 +423,18 @@ public class OpponentModelSingleTreeNode
 
 
     private boolean notFullyExpanded() {
+        int childCount = 0;
         for (OpponentModelSingleTreeNode tn : children) {
-            if (tn == null) {
-                return true;
+//            if (tn == null) {
+//                return true;
+//            }
+            if (tn != null) {
+                childCount += 1;
             }
         }
-
+        if(childCount + badActions.size() < 6){
+            return true;
+        }
         return false;
     }
 }
