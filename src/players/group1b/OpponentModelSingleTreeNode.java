@@ -140,7 +140,7 @@ public class OpponentModelSingleTreeNode
         Types.TILETYPE[][] board = playerBoard.getBoard();
         for (int x = 0; x < 2; x++) {
             for (int y = 0; y < 2; y++) {
-                if(board[y][x] == Types.TILETYPE.RIGID || board[y][x] == Types.TILETYPE.FLAMES || board[y][x] == Types.TILETYPE.WOOD){
+                if(board[y][x] == Types.TILETYPE.RIGID || board[y][x] == Types.TILETYPE.WOOD || board[y][x] == Types.TILETYPE.FLAMES ){
                     if(y == 0 && x == 1){
                         actions.add(Types.ACTIONS.ACTION_UP);
                     }
@@ -164,20 +164,18 @@ public class OpponentModelSingleTreeNode
             badActions = actionsNotToConsider(state);
         }
 
-        int bestAction = 1;
+        int bestAction = 0;
         double bestValue = -1;
 
         for (int i = 0; i < children.length; i++) {
             double x = m_rnd.nextDouble();
 
-            if(badActions.contains(actions[i])){
-            } else {
+            if(!badActions.contains(actions[i])){
                 if (x > bestValue && children[i] == null ) {
                     bestAction = i;
                     bestValue = x;
                 }
             }
-
         }
 
         //Roll the state
