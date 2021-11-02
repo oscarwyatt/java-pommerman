@@ -84,7 +84,8 @@ public class SingleTreeNode
             backUp(selected, delta);
 
             //Stopping condition
-            if(params.stop_type == params.STOP_TIME) {
+//            if(params.stop_type == params.STOP_TIME) {
+            if(true) {
                 numIters++;
                 acumTimeTaken += (elapsedTimerIteration.elapsedMillis()) ;
                 avgTimeTaken  = acumTimeTaken/numIters;
@@ -99,7 +100,10 @@ public class SingleTreeNode
                 stop = (fmCallsCount + params.rollout_depth) > params.num_fmcalls;
             }
         }
-        //System.out.println(" ITERS " + numIters);
+//        fmCallsCount+=params.rollout_depth;
+////        fmCallsCount+=params.rollout_depth;
+//        System.out.println("Original MCTS: " + fmCallsCount);
+//        System.out.println(" ITERS " + numIters);
     }
 
     private SingleTreeNode treePolicy(GameState state) {
@@ -113,6 +117,7 @@ public class SingleTreeNode
 
             } else {
                 cur = cur.uct(state);
+//                System.out.println("MCTS: " + cur.m_depth);
             }
         }
 

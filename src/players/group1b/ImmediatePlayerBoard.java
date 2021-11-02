@@ -15,7 +15,7 @@ public class ImmediatePlayerBoard {
         this.playerArea = getBoard();
     }
 
-    private Types.TILETYPE[][] getBoard() {
+    public Types.TILETYPE[][] getBoard() {
         Types.TILETYPE[][] board = gs.getBoard();
         playerArea = new Types.TILETYPE[3][3];
         int boardSizeX = board.length;
@@ -32,15 +32,15 @@ public class ImmediatePlayerBoard {
                 if(boardPositionX >= 0 && boardPositionX < boardSizeX && boardPositionY >= 0 && boardPositionY < boardSizeY){
                     Types.TILETYPE tileType = Types.TILETYPE.valueOf(board[boardPositionY][boardPositionX].name());
                     // Don't differentiate between other agent types to reduce the statistical space
-                    if(tileType == Types.TILETYPE.AGENT0 || tileType == Types.TILETYPE.AGENT1 || tileType == Types.TILETYPE.AGENT2 || tileType == Types.TILETYPE.AGENT3){
-                        tileType = Types.TILETYPE.AGENT0;
-                    }
+//                    if(tileType == Types.TILETYPE.AGENT0 || tileType == Types.TILETYPE.AGENT1 || tileType == Types.TILETYPE.AGENT2 || tileType == Types.TILETYPE.AGENT3){
+//                        tileType = Types.TILETYPE.AGENT0;
+//                    }
                     playerArea[areaY][areaX] = tileType;
                 }
             }
         }
         // Central tile (ie the one the agent is always in) is always Agent 1 (to differentiate between an enemy)
-        playerArea[1][1] = Types.TILETYPE.AGENT1;
+//        playerArea[1][1] = Types.TILETYPE.AGENT1;
         return playerArea;
     }
 
