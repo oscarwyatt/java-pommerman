@@ -118,8 +118,8 @@ public class Run {
                     case 5:
                         MCTSParams mctsParams = new MCTSParams();
                         mctsParams.stop_type = mctsParams.STOP_TIME;
-//                        mctsParams.num_iterations = 1000;
-//                        mctsParams.rollout_depth = 200;
+                        mctsParams.num_iterations = 1000;
+                        mctsParams.rollout_depth = 200;
 
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
@@ -128,8 +128,8 @@ public class Run {
                     case 6:
                         MCTSOpponentModelParams mctsOpponentModelParams = new MCTSOpponentModelParams();
                         mctsOpponentModelParams.stop_type = mctsOpponentModelParams.STOP_TIME;
-//                        mctsOpponentModelParams.num_iterations = 1000;
-//                        mctsOpponentModelParams.rollout_depth = 200;
+                        mctsOpponentModelParams.num_iterations = 1000;
+                        mctsOpponentModelParams.rollout_depth = 200;
 
                         mctsOpponentModelParams.heuristic_method = mctsOpponentModelParams.CUSTOM_HEURISTIC;
                         p = new MCTSOpponentModelPlayer(seed, playerID++, mctsOpponentModelParams);
