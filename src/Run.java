@@ -106,10 +106,10 @@ public class Run {
                         break;
                     case 4:
                         RHEAParams rheaParams = new RHEAParams();
-                        rheaParams.budget_type = Constants.ITERATION_BUDGET;
+                        rheaParams.budget_type = Constants.TIME_BUDGET;
                         rheaParams.iteration_budget = 100;
                         rheaParams.individual_length = 12;
-                        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
+                        rheaParams.heurisic_type = Constants.ADVANCED_HEURISTIC;
                         rheaParams.mutation_rate = 0.5;
 
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
@@ -118,20 +118,20 @@ public class Run {
                     case 5:
                         MCTSParams mctsParams = new MCTSParams();
                         mctsParams.stop_type = mctsParams.STOP_TIME;
-                        mctsParams.num_iterations = 1000;
-                        mctsParams.rollout_depth = 200;
+                        mctsParams.num_iterations = 999999999;
+                        mctsParams.rollout_depth = 999999;
 
-                        mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
+                        mctsParams.heuristic_method = mctsParams.ADVANCED_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
                         playerStr[i-4] = "MCTS";
                         break;
                     case 6:
                         MCTSOpponentModelParams mctsOpponentModelParams = new MCTSOpponentModelParams();
                         mctsOpponentModelParams.stop_type = mctsOpponentModelParams.STOP_TIME;
-                        mctsOpponentModelParams.num_iterations = 1000;
-                        mctsOpponentModelParams.rollout_depth = 200;
+                        mctsOpponentModelParams.num_iterations = 999999999;
+                        mctsOpponentModelParams.rollout_depth = 999999;
 
-                        mctsOpponentModelParams.heuristic_method = mctsOpponentModelParams.CUSTOM_HEURISTIC;
+                        mctsOpponentModelParams.heuristic_method = mctsOpponentModelParams.ADVANCED_HEURISTIC;
                         p = new MCTSOpponentModelPlayer(seed, playerID++, mctsOpponentModelParams);
                         playerStr[i-4] = "MCTSOpponentModel";
                         break;
